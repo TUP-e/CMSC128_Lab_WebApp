@@ -19,8 +19,9 @@
 | Technology | Purpose | Benefits |
 |------------|---------|----------|
 | **FastAPI** | Backend Framework | Fast performance<br> Auto-generated OpenAPI docs<br> Async support |
-| **Supabase** | Database |  Managed PostgreSQL<br> Built-in RLS<br> Real-time ready |
+| **Supabase** | Database & Auth | Managed PostgreSQL<br> Built-in RLS<br> Email/password auth |
 | **React** | Frontend UI | Component reusability<br> Virtual DOM<br> Rich ecosystem |
+| **React Router** | Client Routing | Protected routes<br> Nested layouts<br> SPA navigation |
 
 ---
 
@@ -38,7 +39,7 @@ Before you begin, ensure you have installed:
 ---
 ### Configuration & Setup
 
-#### Step 1: Clone the Repository
+### Step 1: Clone the Repository
 
 
 `git clone https://github.com/TUP-e/cmsc128-Lab1_CRUD_Nice` </br>
@@ -59,10 +60,12 @@ Also install the python dependencies with `pip install -r requirements.txt`
 
 Create a .env file in the backend/ folder: </br>
 `SUPABASE_URL=https://your-project-id.supabase.co` </br>
-`SUPABASE_KEY=your-public-anon-key`
+`SUPABASE_KEY=your-public-anon-key` </br>
+`JWT_SECRET=your-jwt-secret`
 
-Note: Supabase credentials will be provided separately. We are currently in single-user mode. Multi-user authentication is coming soon, which will allow secure, personalized access to your own tasks.
-
+Optional: </br>
+`FRONTEND_URL=http://localhost:5173` </br>
+`DEMO_MODE=true`
 
 
 ### Step 3: Frontend Setup (React + Vite)
@@ -76,10 +79,10 @@ Create a .env file in the frontend/ folder: </br>
 then install node dependencies `npm install`
 
 ### Local Ports
-`http://localhost:8000 ` - FastAPI server </br>
-`http://localhost:8000/doc` - Swaggers UI Documentation and Testing </br>
-`http://localhost:8000/tasks` - Task list from shared database (JSON) </br>
-`http://localhost:5137` - Frontend UI renders React App
+`http://localhost:8000` - FastAPI server </br>
+`http://localhost:8000/docs` - Swagger UI Documentation and Testing </br>
+`http://localhost:8000/tasks` - Task list for the authenticated user (JSON) </br>
+`http://localhost:5173` - Frontend UI renders React App
 
 Note: Your frontend port may vary (5173, 5174, etc.). Check the terminal output after running npm run dev.
 
@@ -93,25 +96,59 @@ for running the frontend UI : </br>
 `npm run dev` requires a running backend
 
 
-## API Endpoints
+## Features
 
+### Authentication
+- Register with email and password
+- Login with email and password
+- Forgot password / reset password flow via email
+- Protected routes redirect unauthenticated users to `/login`
+- Session persisted with a JWT stored client-side
+
+> Note: With `DEMO_MODE=true`, the password reset link is returned in the API response for easy testing.
+
+### Task Management
+- Create tasks with title, due date, priority, and tag
+- Edit existing tasks inline
+- Mark tasks as done / undone
+- Soft delete tasks with a 5-second undo toast
+- Sort by created date, due date, priority, or tag
+- Filter by priority, tag, and completion status
+
+### Profile
+- Update display name and email
+- Change password (requires current password)
+- View current account info in a dedicated `/profile` page
+
+### Home Layout
+- Two-column layout: task list on the left, user sidebar on the right
+- Sidebar shows display name, email, and quick links to Profile / Log Out
+- Responsive: stacks into a single column on narrow screens
+
+
+## API Endpoints
 ### REST API Reference
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/tasks` | Get all tasks (non-deleted) |
-| `GET` | `/tasks/{id}` | Get single task by ID | 
-| `POST` | `/tasks` | Create a new task | 
-| `PATCH` | `/tasks/{id}` | Update a task | 
-| `DELETE` | `/tasks/{id}` | Soft delete a task | 
-| `POST` | `/tasks/{id}/restore` | Restore a deleted task | 
+| `POST` | `/auth/register` | Register a new user |
+| `POST` | `/auth/login` | Log in and receive a JWT |
+| `POST` | `/auth/forgot-password` | Send a password reset email |
+| `POST` | `/auth/reset-password` | Reset password with token |
+| `GET` | `/tasks` | Get all tasks for the authenticated user |
+| `GET` | `/tasks/{id}` | Get single task by ID |
+| `POST` | `/tasks` | Create a new task |
+| `DELETE` | `/tasks/{id}` | Soft delete a task |
+| `POST` | `/tasks/{id}/restore` | Restore a deleted task |
 
 
 ### Example API Calls
 #### Create a Task 
+
 ```
 Request:
 POST /tasks
+Authorization: Bearer <jwt>
 Content-Type: application/json
 
 {
@@ -141,3 +178,7 @@ Response:
 |![Alt Text](./screenshots/P3.png)|
 |![Alt Text](./screenshots/P4.png)|
 |![Alt Text](./screenshots/P5.png)|
+|![Login page](./screenshots/LoginPage.png)|
+|![Home page](./screenshots/HomePage.png)|
+|![Duplicate registration error](./screenshots/Duplicate%20Registration.png)|
+|![Password changing](./screenshots/Password%20Changing.png)|
